@@ -1,13 +1,30 @@
 export enum TicketStatus {
-    OPEN = 'OPEN',
+    CREATED = 'CREATED',
     IN_PROGRESS = 'IN_PROGRESS',
-    CLOSED = 'CLOSED',
+    COMPLETED = 'COMPLETED',
+}
+
+export enum TicketPriority {
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH',
+}
+
+export enum TicketTopic {
+    BILLING = 'BILLING',
+    BUG = 'BUG',
+    FEATURE = 'FEATURE',
+    OTHER = 'OTHER',
 }
 
 export interface Ticket {
     id: string;
     title: string;
     description: string;
+    requester_id: number;
+    assignee_id?: number;
+    priority: TicketPriority;
+    topic: TicketTopic;
     status: TicketStatus;
     createdAt: string;
 }
@@ -15,11 +32,19 @@ export interface Ticket {
 export interface CreateTicketDto {
     title: string;
     description: string;
+    requester_id: number;
+    assignee_id?: number;
+    priority: TicketPriority;
+    topic: TicketTopic;
     status?: TicketStatus;
 }
 
 export interface UpdateTicketDto {
     title?: string;
     description?: string;
+    requester_id?: number;
+    assignee_id?: number;
+    priority?: TicketPriority;
+    topic?: TicketTopic;
     status?: TicketStatus;
 }

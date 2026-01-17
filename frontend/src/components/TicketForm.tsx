@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ticketsApi } from '../services/api';
-import { TicketStatus } from '../types';
+import { TicketStatus, TicketPriority, TicketTopic } from '../types';
 import { ArrowLeft, Save } from 'lucide-react';
 
 export const TicketForm: React.FC = () => {
@@ -12,16 +12,20 @@ export const TicketForm: React.FC = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        status: TicketStatus.OPEN,
+        requester_id: 0,
+        assignee_id: undefined as number | undefined,
+        priority: TicketPriority.MEDIUM,
+        topic: TicketTopic.OTHER,
+        status: TicketStatus.CREATED,
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (isEditMode) {
-            loadTicket(id);
+            loadTicket(id!);
         }
-    }, [id]);
+    }, [id, isEditMode]);
 
     const loadTicket = async (ticketId: string) => {
         try {
@@ -30,6 +34,10 @@ export const TicketForm: React.FC = () => {
             setFormData({
                 title: ticket.title,
                 description: ticket.description,
+                requester_id: ticket.requester_id,
+                assignee_id: ticket.assignee_id,
+                priority: ticket.priority,
+                topic: ticket.topic,
                 status: ticket.status,
             });
         } catch (err) {
@@ -46,7 +54,7 @@ export const TicketForm: React.FC = () => {
 
         try {
             if (isEditMode) {
-                await ticketsApi.update(id, formData);
+                await ticketsApi.update(id!, formData);
             } else {
                 await ticketsApi.create(formData);
             }
@@ -63,7 +71,7 @@ export const TicketForm: React.FC = () => {
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-6">
+        <div className="max-w-2xl mx-auto p-6 mb-20">
             <button
                 onClick={() => navigate('/')}
                 className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
@@ -84,41 +92,91 @@ export const TicketForm: React.FC = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Title</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Enter ticket title"
-                        />
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Title</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Enter ticket title"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
-                        <textarea
-                            required
-                            rows={4}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Describe the issue..."
-                        />
-                    </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
+                            <textarea
+                                required
+                                rows={4}
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Describe the issue..."
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Status</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value as TicketStatus })}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        >
-                            <option value={TicketStatus.OPEN}>Open</option>
-                            <option value={TicketStatus.IN_PROGRESS}>In Progress</option>
-                            <option value={TicketStatus.CLOSED}>Closed</option>
-                        </select>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Requester ID</label>
+                            <input
+                                type="number"
+                                required
+                                value={formData.requester_id}
+                                onChange={(e) => setFormData({ ...formData, requester_id: parseInt(e.target.value) || 0 })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Assignee ID (Optional)</label>
+                            <input
+                                type="number"
+                                value={formData.assignee_id || ''}
+                                onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value ? parseInt(e.target.value) : undefined })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Unassigned"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Priority</label>
+                            <select
+                                value={formData.priority}
+                                onChange={(e) => setFormData({ ...formData, priority: e.target.value as TicketPriority })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            >
+                                {Object.values(TicketPriority).map((p) => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Topic</label>
+                            <select
+                                value={formData.topic}
+                                onChange={(e) => setFormData({ ...formData, topic: e.target.value as TicketTopic })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            >
+                                {Object.values(TicketTopic).map((t) => (
+                                    <option key={t} value={t}>{t}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Status</label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value as TicketStatus })}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            >
+                                {Object.values(TicketStatus).map((s) => (
+                                    <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <button
