@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ticketsApi } from '../services/api';
 import { TicketStatus, TicketPriority, TicketTopic } from '../types';
 import type { Ticket } from '../types';
-import { Plus, Trash2, Edit2, CheckCircle2, Circle, Clock, Tag, User, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, CheckCircle2, Circle, Clock, Tag, User, AlertCircle } from 'lucide-react';
 
 export const TicketList: React.FC = () => {
     const navigate = useNavigate();
@@ -27,15 +27,7 @@ export const TicketList: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this ticket?')) return;
-        try {
-            await ticketsApi.delete(id);
-            setTickets(tickets.filter(t => t.id !== id));
-        } catch (err) {
-            alert('Failed to delete ticket');
-        }
-    };
+
 
     const getStatusIcon = (status: TicketStatus) => {
         switch (status) {
@@ -150,13 +142,7 @@ export const TicketList: React.FC = () => {
                                 >
                                     <Edit2 className="w-5 h-5" />
                                 </button>
-                                <button
-                                    onClick={() => handleDelete(ticket.id)}
-                                    className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-400 transition-colors"
-                                    title="Delete"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
+
                             </div>
                         </div>
                     </div>

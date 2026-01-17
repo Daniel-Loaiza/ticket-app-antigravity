@@ -58,6 +58,13 @@ export const TicketForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+
+        // Validation: Cannot transition to IN_PROGRESS without assignee
+        if (formData.status === TicketStatus.IN_PROGRESS && !formData.assignee_id) {
+            setError('An assignee is required to move a ticket to In Progress');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -67,8 +74,10 @@ export const TicketForm: React.FC = () => {
                 await ticketsApi.create(formData);
             }
             navigate('/');
-        } catch (err) {
-            setError('Failed to save ticket');
+        } catch (err: any) {
+            // Display backend error message if available
+            const message = err.response?.data?.message || 'Failed to save ticket';
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -173,18 +182,32 @@ export const TicketForm: React.FC = () => {
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-2">Status</label>
-                            <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as TicketStatus })}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            >
-                                {Object.values(TicketStatus).map((s) => (
-                                    <option key={s} value={s}>{s.replace('_', ' ')}</option>
-                                ))}
-                            </select>
-                        </div>
+
+                        {isEditMode && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-2">Status</label>
+                                <select
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({ ...formData, status: e.target.value as TicketStatus })}
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                >
+                                    {Object.values(TicketStatus)
+                                        .filter(status => {
+                                            // Current status is always allowed (to stay on same status)
+                                            if (status === formData.status) return true;
+
+                                            // Valid transitions
+                                            if (formData.status === TicketStatus.CREATED && status === TicketStatus.IN_PROGRESS) return true;
+                                            if (formData.status === TicketStatus.IN_PROGRESS && status === TicketStatus.COMPLETED) return true;
+
+                                            return false;
+                                        })
+                                        .map((s) => (
+                                            <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                                        ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     <button
