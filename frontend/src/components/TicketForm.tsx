@@ -9,11 +9,19 @@ export const TicketForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        title: string;
+        description: string;
+        requester_id: number;
+        assignee_id?: number;
+        priority: TicketPriority;
+        topic: TicketTopic;
+        status: TicketStatus;
+    }>({
         title: '',
         description: '',
         requester_id: 0,
-        assignee_id: undefined as number | undefined,
+        assignee_id: undefined,
         priority: TicketPriority.MEDIUM,
         topic: TicketTopic.OTHER,
         status: TicketStatus.CREATED,

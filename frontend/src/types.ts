@@ -1,21 +1,27 @@
-export enum TicketStatus {
-    CREATED = 'CREATED',
-    IN_PROGRESS = 'IN_PROGRESS',
-    COMPLETED = 'COMPLETED',
-}
+export const TicketStatus = {
+    CREATED: 'CREATED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    COMPLETED: 'COMPLETED',
+} as const;
 
-export enum TicketPriority {
-    LOW = 'LOW',
-    MEDIUM = 'MEDIUM',
-    HIGH = 'HIGH',
-}
+export type TicketStatus = typeof TicketStatus[keyof typeof TicketStatus];
 
-export enum TicketTopic {
-    BILLING = 'BILLING',
-    BUG = 'BUG',
-    FEATURE = 'FEATURE',
-    OTHER = 'OTHER',
-}
+export const TicketPriority = {
+    LOW: 'LOW',
+    MEDIUM: 'MEDIUM',
+    HIGH: 'HIGH',
+} as const;
+
+export type TicketPriority = typeof TicketPriority[keyof typeof TicketPriority];
+
+export const TicketTopic = {
+    BILLING: 'BILLING',
+    BUG: 'BUG',
+    FEATURE: 'FEATURE',
+    OTHER: 'OTHER',
+} as const;
+
+export type TicketTopic = typeof TicketTopic[keyof typeof TicketTopic];
 
 export interface Ticket {
     id: string;
