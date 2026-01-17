@@ -73,7 +73,7 @@ export const TicketForm: React.FC = () => {
             } else {
                 await ticketsApi.create(formData);
             }
-            navigate('/');
+            navigate(-1);
         } catch (err: any) {
             // Display backend error message if available
             const message = err.response?.data?.message || 'Failed to save ticket';
@@ -90,11 +90,11 @@ export const TicketForm: React.FC = () => {
     return (
         <div className="max-w-2xl mx-auto p-6 mb-20">
             <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(-1)}
                 className="flex items-center text-gray-400 hover:text-white mb-6 transition-colors"
             >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to List
+                Back
             </button>
 
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl">
