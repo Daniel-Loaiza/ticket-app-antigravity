@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ticketsApi } from '../services/api';
 import { TicketStatus, TicketPriority, TicketTopic } from '../types';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -7,6 +7,8 @@ import { ArrowLeft, Save } from 'lucide-react';
 export const TicketForm: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
+    const [searchParams] = useSearchParams();
+    const requesterIdParam = searchParams.get('requesterId');
     const isEditMode = !!id;
 
     const [formData, setFormData] = useState<{
@@ -32,8 +34,13 @@ export const TicketForm: React.FC = () => {
     useEffect(() => {
         if (isEditMode) {
             loadTicket(id!);
+        } else if (requesterIdParam) {
+            setFormData(prev => ({
+                ...prev,
+                requester_id: parseInt(requesterIdParam) || 0
+            }));
         }
-    }, [id, isEditMode]);
+    }, [id, isEditMode, requesterIdParam]);
 
     const loadTicket = async (ticketId: string) => {
         try {
@@ -62,6 +69,17 @@ export const TicketForm: React.FC = () => {
         // Validation: Cannot transition to IN_PROGRESS without assignee
         if (formData.status === TicketStatus.IN_PROGRESS && !formData.assignee_id) {
             setError('An assignee is required to move a ticket to In Progress');
+            return;
+        }
+
+        // Validation: ID's must be non-negative
+        if (formData.requester_id < 0) {
+            setError('Requester ID must be a positive number');
+            return;
+        }
+
+        if (formData.assignee_id !== undefined && formData.assignee_id < 0) {
+            setError('Assignee ID must be a positive number');
             return;
         }
 
@@ -139,6 +157,7 @@ export const TicketForm: React.FC = () => {
                             <input
                                 type="number"
                                 required
+                                min="0"
                                 value={formData.requester_id}
                                 onChange={(e) => setFormData({ ...formData, requester_id: parseInt(e.target.value) || 0 })}
                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
@@ -149,7 +168,8 @@ export const TicketForm: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-400 mb-2">Assignee ID (Optional)</label>
                             <input
                                 type="number"
-                                value={formData.assignee_id || ''}
+                                min="0"
+                                value={formData.assignee_id === undefined ? '' : formData.assignee_id}
                                 onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value ? parseInt(e.target.value) : undefined })}
                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                 placeholder="Unassigned"

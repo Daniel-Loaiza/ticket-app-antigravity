@@ -22,11 +22,7 @@ export const SolverPage: React.FC = () => {
         try {
             setLoading(true);
             const data = await ticketsApi.getAll();
-            // Filter tickets by solverId if provided
-            const filteredData = solverId
-                ? data.filter(ticket => ticket.assignee_id === parseInt(solverId))
-                : data;
-            setTickets(filteredData);
+            setTickets(data);
         } catch (err) {
             setError('Failed to load tickets');
         } finally {
@@ -67,9 +63,10 @@ export const SolverPage: React.FC = () => {
         }
     };
 
-    const pendingCount = tickets.filter(t => t.status === TicketStatus.CREATED).length;
-    const inProgressCount = tickets.filter(t => t.status === TicketStatus.IN_PROGRESS).length;
-    const completedCount = tickets.filter(t => t.status === TicketStatus.COMPLETED).length;
+    const solverTickets = tickets.filter(t => solverId && t.assignee_id === parseInt(solverId));
+    const pendingCount = solverTickets.filter(t => t.status === TicketStatus.CREATED).length;
+    const inProgressCount = solverTickets.filter(t => t.status === TicketStatus.IN_PROGRESS).length;
+    const completedCount = solverTickets.filter(t => t.status === TicketStatus.COMPLETED).length;
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white p-6">
@@ -98,7 +95,7 @@ export const SolverPage: React.FC = () => {
                                 <Clock className="w-6 h-6 text-yellow-400" />
                             </div>
                             <div>
-                                <p className="text-gray-400 text-sm">Pending</p>
+                                <p className="text-gray-400 text-sm">Created</p>
                                 <p className="text-2xl font-bold">{pendingCount}</p>
                             </div>
                         </div>
@@ -138,70 +135,138 @@ export const SolverPage: React.FC = () => {
                 {loading ? (
                     <div className="text-center p-8 text-gray-400">Loading tickets...</div>
                 ) : (
-                    <div className="grid gap-4">
-                        {tickets.map((ticket) => (
-                            <div
-                                key={ticket.id}
-                                className="group bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-all hover:shadow-xl hover:shadow-black/50"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="flex flex-wrap items-center gap-3 mb-3">
-                                            <h3 className="text-xl font-semibold text-white group-hover:text-emerald-400 transition-colors">
-                                                {ticket.title}
-                                            </h3>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusStyle(ticket.status)}`}>
-                                                {getStatusIcon(ticket.status)}
-                                                {ticket.status.replace('_', ' ')}
-                                            </span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getPriorityColor(ticket.priority)}`}>
-                                                <AlertCircle className="w-3 h-3" />
-                                                {ticket.priority}
-                                            </span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getTopicColor(ticket.topic)}`}>
-                                                <Tag className="w-3 h-3" />
-                                                {ticket.topic}
-                                            </span>
-                                        </div>
-
-                                        <p className="text-gray-400 line-clamp-2 mb-4">{ticket.description}</p>
-
-                                        <div className="flex items-center gap-6 text-sm text-gray-500">
-                                            <div className="flex items-center gap-2">
-                                                <User className="w-4 h-4" />
-                                                <span>Req: {ticket.requester_id}</span>
-                                            </div>
-                                            {ticket.assignee_id && (
-                                                <div className="flex items-center gap-2">
-                                                    <User className="w-4 h-4" />
-                                                    <span>Assignee: {ticket.assignee_id}</span>
-                                                </div>
-                                            )}
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="w-4 h-4" />
-                                                <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
-                                        <button
-                                            onClick={() => navigate(`/edit/${ticket.id}`)}
-                                            className="p-2 hover:bg-zinc-800 rounded-lg text-gray-400 hover:text-white transition-colors"
-                                            title="Edit"
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Left Column: My Assigned Tickets */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-6">
+                                <User className="w-5 h-5 text-emerald-400" />
+                                <h2 className="text-2xl font-bold">My Assigned Tickets</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {tickets
+                                    .filter(t => solverId && t.assignee_id === parseInt(solverId))
+                                    .map((ticket) => (
+                                        <div
+                                            key={ticket.id}
+                                            className="group bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-all hover:shadow-xl hover:shadow-black/50"
                                         >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                        <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                                                            {ticket.title}
+                                                        </h3>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 ${getStatusStyle(ticket.status)}`}>
+                                                            {getStatusIcon(ticket.status)}
+                                                            {ticket.status.replace('_', ' ')}
+                                                        </span>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 ${getPriorityColor(ticket.priority)}`}>
+                                                            <AlertCircle className="w-3 h-3" />
+                                                            {ticket.priority}
+                                                        </span>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 ${getTopicColor(ticket.topic)}`}>
+                                                            <Tag className="w-3 h-3" />
+                                                            {ticket.topic}
+                                                        </span>
+                                                    </div>
 
-                        {tickets.length === 0 && (
-                            <div className="text-center py-20 bg-zinc-900/50 rounded-xl border border-dashed border-zinc-800">
-                                <p className="text-gray-500 text-lg">No tickets found.</p>
+                                                    <p className="text-gray-400 text-sm line-clamp-2 mb-4">{ticket.description}</p>
+
+                                                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                                                        <div className="flex items-center gap-1">
+                                                            <User className="w-3.5 h-3.5" />
+                                                            <span>Req: {ticket.requester_id}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5" />
+                                                            <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                                                    <button
+                                                        onClick={() => navigate(`/edit/${ticket.id}`)}
+                                                        className="p-1.5 hover:bg-zinc-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                {tickets.filter(t => solverId && t.assignee_id === parseInt(solverId)).length === 0 && (
+                                    <div className="text-center py-10 bg-zinc-900/50 rounded-xl border border-dashed border-zinc-800">
+                                        <p className="text-gray-500">No assigned tickets found.</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
+
+                        {/* Right Column: Available Tickets */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-6">
+                                <ListTodo className="w-5 h-5 text-blue-400" />
+                                <h2 className="text-2xl font-bold">Available Tickets</h2>
+                            </div>
+                            <div className="grid gap-4">
+                                {tickets
+                                    .filter(t => t.status === TicketStatus.CREATED && !t.assignee_id)
+                                    .map((ticket) => (
+                                        <div
+                                            key={ticket.id}
+                                            className="group bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-all hover:shadow-xl hover:shadow-black/50"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                        <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
+                                                            {ticket.title}
+                                                        </h3>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 ${getPriorityColor(ticket.priority)}`}>
+                                                            <AlertCircle className="w-3 h-3" />
+                                                            {ticket.priority}
+                                                        </span>
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 ${getTopicColor(ticket.topic)}`}>
+                                                            <Tag className="w-3 h-3" />
+                                                            {ticket.topic}
+                                                        </span>
+                                                    </div>
+
+                                                    <p className="text-gray-400 text-sm line-clamp-2 mb-4">{ticket.description}</p>
+
+                                                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                                                        <div className="flex items-center gap-1">
+                                                            <User className="w-3.5 h-3.5" />
+                                                            <span>Req: {ticket.requester_id}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5" />
+                                                            <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                                                    <button
+                                                        onClick={() => navigate(`/edit/${ticket.id}`)}
+                                                        className="p-1.5 hover:bg-zinc-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+                                                        title="Assign & Edit"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                {tickets.filter(t => t.status === TicketStatus.CREATED && !t.assignee_id).length === 0 && (
+                                    <div className="text-center py-10 bg-zinc-900/50 rounded-xl border border-dashed border-zinc-800">
+                                        <p className="text-gray-500">No available tickets found.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

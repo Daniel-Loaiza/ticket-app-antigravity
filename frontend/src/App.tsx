@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { TicketList } from './components/TicketList';
 import { TicketForm } from './components/TicketForm';
 import { MainPage } from './pages/MainPage';
 import { AdminPage } from './pages/AdminPage';
@@ -21,7 +20,6 @@ function App() {
           <Route path="/solver" element={<SolverPage />} />
 
           {/* Legacy routes for backward compatibility */}
-          <Route path="/tickets" element={<TicketList />} />
           <Route path="/create" element={<TicketForm />} />
           <Route path="/edit/:id" element={<TicketForm />} />
         </Routes>

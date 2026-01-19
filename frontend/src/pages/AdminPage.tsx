@@ -60,6 +60,8 @@ export const AdminPage: React.FC = () => {
         }
     };
 
+    const totalUsers = new Set(tickets.map(t => t.requester_id)).size;
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white p-6">
             <div className="max-w-6xl mx-auto">
@@ -88,7 +90,7 @@ export const AdminPage: React.FC = () => {
                             </div>
                             <div>
                                 <p className="text-gray-400 text-sm">Total Users</p>
-                                <p className="text-2xl font-bold">--</p>
+                                <p className="text-2xl font-bold">{totalUsers}</p>
                             </div>
                         </div>
                     </div>

@@ -89,7 +89,7 @@ export const CreatorPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                     <button
-                        onClick={() => navigate('/create')}
+                        onClick={() => navigate(`/create${creatorId ? `?requesterId=${creatorId}` : ''}`)}
                         className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 hover:border-zinc-700 transition-all text-left cursor-pointer hover:scale-105 transform duration-300"
                     >
                         <div className="flex items-center gap-4 mb-4">
