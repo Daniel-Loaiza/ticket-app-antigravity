@@ -2,6 +2,8 @@
 
 A full-stack monolithic application for managing tickets.
 
+<img width="959" height="540" alt="image" src="https://github.com/user-attachments/assets/d1cd8fc6-ee35-454d-b0ef-453bc11d024c" />
+
 ## Project Structure
 
 ```
